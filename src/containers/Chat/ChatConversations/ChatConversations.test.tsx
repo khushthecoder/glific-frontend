@@ -86,10 +86,8 @@ const client = new ApolloClient({
 
 afterEach(cleanup);
 
-const simulatorParams = {
+const conversationParams = {
   entityId: 1,
-  simulatorId: 1,
-  setShowSimulator: vi.fn(),
   setSearchParam: vi.fn(),
   searchParam: {},
 };
@@ -98,7 +96,7 @@ const chatConversation = (
   <ApolloProvider client={client}>
     <MockedProvider mocks={ChatConversationMocks} addTypename={false}>
       <Router>
-        <ChatConversations {...simulatorParams} />
+        <ChatConversations {...conversationParams} />
       </Router>
     </MockedProvider>
   </ApolloProvider>

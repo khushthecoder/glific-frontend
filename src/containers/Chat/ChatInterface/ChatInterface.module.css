@@ -108,13 +108,6 @@
   }
 }
 
-.SimulatorIcon {
-  cursor: pointer;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-}
-
 .Heading {
   margin-right: 10px;
 }

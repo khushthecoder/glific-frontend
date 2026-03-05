@@ -4,19 +4,15 @@ import { useQuery } from '@apollo/client';
 import { useLocation, useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 
-import Simulator from 'components/simulator/Simulator';
 import { Loading } from 'components/UI/Layout/Loading/Loading';
 import { SEARCH_QUERY } from 'graphql/queries/Search';
-import { getUserRole } from 'context/role';
 import { setErrorMessage } from 'common/notification';
 import { COLLECTION_SEARCH_QUERY_VARIABLES, SEARCH_QUERY_VARIABLES } from 'common/constants';
 import ChatConversations from '../ChatConversations/ChatConversations';
 import ChatMessages from '../ChatMessages/ChatMessages';
-import SimulatorIcon from 'assets/images/icons/Simulator.svg?react';
 import CollectionConversations from '../CollectionConversations/CollectionConversations';
 import SavedSearches from '../SavedSearches/SavedSearches';
 import styles from './ChatInterface.module.css';
-import { getOrganizationServices } from 'services/AuthService';
 
 const tabs = [
   {
@@ -39,15 +35,11 @@ export interface ChatInterfaceProps {
 
 export const ChatInterface = ({ savedSearches, collectionType }: ChatInterfaceProps) => {
   const navigate = useNavigate();
-  const [simulatorAccess, setSimulatorAccess] = useState(true);
-  const [showSimulator, setShowSimulator] = useState(false);
-  const [simulatorId, setSimulatorId] = useState(0);
   const { t } = useTranslation();
   const location = useLocation();
   const params = useParams();
   const [value, setValue] = useState(tabs[0].link);
   const [appliedFilters, setAppliedFilters] = useState<any>({});
-  const isAskMeBotEnabled = getOrganizationServices('askMeBotEnabled');
 
   let selectedContactId = params.contactId;
   let selectedCollectionId: any = params.collectionId;
@@ -67,12 +59,6 @@ export const ChatInterface = ({ savedSearches, collectionType }: ChatInterfacePr
     variables: queryVariables,
     fetchPolicy: 'cache-only',
   });
-
-  useEffect(() => {
-    if (getUserRole().includes('Staff')) {
-      setSimulatorAccess(false);
-    }
-  }, []);
 
   useEffect(() => {
     const currentTab = tabs.filter((tab) => location.pathname === tab.link);
@@ -115,10 +101,6 @@ export const ChatInterface = ({ savedSearches, collectionType }: ChatInterfacePr
   let chatInterface: any;
   let listingContent;
 
-  const getSimulatorId = (id: any) => {
-    setSimulatorId(id);
-  };
-
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
     navigate(newValue);
@@ -133,11 +115,9 @@ export const ChatInterface = ({ savedSearches, collectionType }: ChatInterfacePr
       listingContent = <CollectionConversations collectionId={selectedCollectionId} />;
       heading = 'Collections';
     } else if (selectedContactId && !savedSearches) {
-      // let's enable simulator only when contact tab is shown
-
       listingContent = (
         <ChatConversations
-          entityId={simulatorId > 0 ? simulatorId : selectedContactId}
+          entityId={selectedContactId}
           setAppliedFilters={setAppliedFilters}
         />
       );
@@ -152,7 +132,7 @@ export const ChatInterface = ({ savedSearches, collectionType }: ChatInterfacePr
       <>
         <div className={`${styles.ChatMessages} chatMessages`}>
           <ChatMessages
-            entityId={simulatorId > 0 ? simulatorId : selectedContactId}
+            entityId={selectedContactId}
             collectionId={selectedCollectionId}
             appliedFilters={appliedFilters}
           />
@@ -187,31 +167,11 @@ export const ChatInterface = ({ savedSearches, collectionType }: ChatInterfacePr
     );
   }
 
-  const handleCloseSimulator = (value: boolean) => {
-    setShowSimulator(value);
-    setSimulatorId(0);
-  };
-
   return (
     <Paper>
       <div className={styles.Chat} data-testid="chatContainer">
         {chatInterface}
       </div>
-      {!isAskMeBotEnabled && selectedTab === 'contacts' && !savedSearches && (
-        <SimulatorIcon
-          data-testid="simulatorIcon"
-          className={styles.SimulatorIcon}
-          onClick={() => {
-            setShowSimulator(!showSimulator);
-            if (showSimulator) {
-              setSimulatorId(0);
-            }
-          }}
-        />
-      )}
-      {simulatorAccess && !selectedCollectionId && showSimulator ? (
-        <Simulator setShowSimulator={handleCloseSimulator} getSimulatorId={getSimulatorId} />
-      ) : null}
     </Paper>
   );
 };
